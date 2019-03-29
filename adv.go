@@ -127,9 +127,27 @@ func (a *Advertisement) unmarshall(b []byte) error {
 		case typeManufacturerData:
 			a.ManufacturerData = make([]byte, len(d))
 			copy(a.ManufacturerData, d)
-		// case typeServiceData16,
-		// case typeServiceData32,
-		// case typeServiceData128:
+               case typeServiceData16:
+                       uuid := UUID{d[:2]}
+                       a.Services = append(a.Services, uuid)
+                       d = d[2:]
+                       data := make([]byte, len(d))
+                       copy(data, d)
+                       a.ServiceData = append(a.ServiceData, ServiceData{UUID:uuid, Data:data})
+               case typeServiceData32:
+                       uuid := UUID{d[:4]}
+                       a.Services = append(a.Services, uuid)
+                       d = d[4:]
+                       data := make([]byte, len(d))
+                       copy(data, d)
+                       a.ServiceData = append(a.ServiceData, ServiceData{UUID:uuid, Data:data})
+               case typeServiceData128:
+                       uuid := UUID{d[:16]}
+                       a.Services = append(a.Services, uuid)
+                       d = d[16:]
+                       data := make([]byte, len(d))
+                       copy(data, d)
+                       a.ServiceData = append(a.ServiceData, ServiceData{UUID:uuid, Data:data})
 		default:
 			log.Printf("DATA: [ % X ]", d)
 		}
