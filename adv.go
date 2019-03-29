@@ -88,6 +88,16 @@ func (a *Advertisement) unmarshall(b []byte) error {
 		return u
 	}
 
+	uuidService := func(u []UUID, s []ServiceData, d []byte, w int) ([]UUID, []ServiceData) {
+		uuid := UUID{d[:w]}
+		u = append(u, uuid)
+		d = d[w:]
+		data := make([]byte, len(d))
+		copy(data, d)
+		s = append(s, ServiceData{UUID: uuid, Data: data})
+		return u, s
+	}
+
 	for len(b) > 0 {
 		if len(b) < 2 {
 			return errors.New("invalid advertise data")
@@ -128,26 +138,11 @@ func (a *Advertisement) unmarshall(b []byte) error {
 			a.ManufacturerData = make([]byte, len(d))
 			copy(a.ManufacturerData, d)
 		case typeServiceData16:
-			uuid := UUID{d[:2]}
-			a.Services = append(a.Services, uuid)
-			d = d[2:]
-			data := make([]byte, len(d))
-			copy(data, d)
-			a.ServiceData = append(a.ServiceData, ServiceData{UUID: uuid, Data: data})
+			a.Services, a.ServiceData = uuidService(a.Services, a.ServiceData, d ,2)
 		case typeServiceData32:
-			uuid := UUID{d[:4]}
-			a.Services = append(a.Services, uuid)
-			d = d[4:]
-			data := make([]byte, len(d))
-			copy(data, d)
-			a.ServiceData = append(a.ServiceData, ServiceData{UUID: uuid, Data: data})
+			a.Services, a.ServiceData = uuidService(a.Services, a.ServiceData, d ,4)
 		case typeServiceData128:
-			uuid := UUID{d[:16]}
-			a.Services = append(a.Services, uuid)
-			d = d[16:]
-			data := make([]byte, len(d))
-			copy(data, d)
-			a.ServiceData = append(a.ServiceData, ServiceData{UUID: uuid, Data: data})
+			a.Services, a.ServiceData = uuidService(a.Services, a.ServiceData, d ,16)
 		default:
 			log.Printf("DATA: [ % X ]", d)
 		}
